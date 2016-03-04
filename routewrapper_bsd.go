@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"regexp"
 	"strconv"
 )
 
@@ -17,8 +16,6 @@ type BSDRouteWrapper struct {
 	routes         []Route
 	defaultRoutes  []Route
 }
-
-var delimitedByWhitespaces = regexp.MustCompile("\\s+")
 
 const (
 	RTF_PROTO1    = '1'

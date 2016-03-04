@@ -1,6 +1,9 @@
 package routewrapper
 
-import "net"
+import (
+	"net"
+	"regexp"
+)
 
 type Route struct {
 	Destination net.IPNet
@@ -8,11 +11,12 @@ type Route struct {
 	Interface   *net.Interface
 	Flags       map[string]bool
 	Expire      int
+	Metric      int
 }
 
 func (route *Route) IsDefaultRoute() bool {
 	ones, _ := route.Destination.Mask.Size()
-	return (&route.Destination.IP[0] == &net.IPv4zero[0] || &route.Destination.IP[0] == &net.IPv6zero[0]) && ones == 0
+	return (route.Destination.IP.Equal(net.IPv4zero) || route.Destination.IP.Equal(net.IPv6zero)) && ones == 0
 }
 
 func (route *Route) DestinationIsNetwork() bool {
@@ -38,3 +42,5 @@ type Routing interface {
 	AddRoute(Route) error
 	GetInterface(name string) (*net.Interface, error)
 }
+
+var delimitedByWhitespaces = regexp.MustCompile("\\s+")

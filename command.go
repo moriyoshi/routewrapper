@@ -111,12 +111,12 @@ func runCommand(cmd *exec.Cmd) (stdoutBuf []byte, stderrBuf []byte, err error) {
 	return
 }
 
-func (cmd CommandSpec) makeCmdFromSpec() *exec.Cmd {
-	retval := exec.Command(cmd.Name, cmd.Args...)
-	retval.Env = []string{"LANG=C", "LC_CTYPE=C", "LC_MESSAGES=C"}
-	return retval
-}
-
 func (cmd CommandSpec) Run() ([]byte, []byte, error) {
-	return runCommand(cmd.makeCmdFromSpec())
+	ocmd := exec.Command(cmd.Name, cmd.Args...)
+	ctx, err := onBeforeCommandRun(ocmd)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer onAfterCommandRun(ctx, ocmd)
+	return runCommand(ocmd)
 }
