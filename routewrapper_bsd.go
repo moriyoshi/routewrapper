@@ -318,12 +318,13 @@ func NewBSDRouteWrapper(netstatCommand string, routeCommand string) (*BSDRouteWr
 		return nil, err
 	}
 
-	for _, if_ := range ifs {
-		_, ok := interfaces[if_.Name]
+	for i := range ifs {
+		pif := &ifs[i]
+		_, ok := interfaces[pif.Name]
 		if ok {
-			return nil, fmt.Errorf("More than one Interfaces with the same name exists: %s", if_.Name)
+			return nil, fmt.Errorf("More than one Interfaces with the same name exists: %s", pif.Name)
 		}
-		interfaces[if_.Name] = &if_
+		interfaces[pif.Name] = pif
 	}
 	return &BSDRouteWrapper{
 		netstatCommand: CommandSpec{netstatCommand, []string{"-r", "-n"}},
