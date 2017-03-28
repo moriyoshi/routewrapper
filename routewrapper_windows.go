@@ -253,6 +253,8 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 				state = 7
 			} else if t == "Persistent Routes:" {
 				state = 11
+			} else if t == "" {
+				state = 4
 			}
 		case 7:
 			if t == "  None" {
