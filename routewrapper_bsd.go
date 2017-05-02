@@ -127,7 +127,7 @@ func (wrapper *BSDRouteWrapper) getRoutes() ([]Route, error) {
 			} else {
 				columns := delimitedByWhitespaces.Split(t, -1)
 				r := Route{
-					Flags: make(map[string]bool),
+					Flags: make(map[string]string),
 				}
 				for i := 0; i < len(header); i++ {
 					k := header[i]
@@ -158,7 +158,7 @@ func (wrapper *BSDRouteWrapper) getRoutes() ([]Route, error) {
 							if !ok {
 								return nil, fmt.Errorf("Unknown flag: %c", c)
 							}
-							r.Flags[flag] = true
+							r.Flags[flag] = flag
 						}
 					case "Netif":
 						r.Interface = wrapper.interfaces[v]
@@ -182,7 +182,7 @@ func (wrapper *BSDRouteWrapper) getRoutes() ([]Route, error) {
 			} else {
 				columns := delimitedByWhitespaces.Split(t, -1)
 				r := Route{
-					Flags: make(map[string]bool),
+					Flags: make(map[string]string),
 				}
 				for i := 0; i < len(header); i++ {
 					k := header[i]
@@ -213,7 +213,7 @@ func (wrapper *BSDRouteWrapper) getRoutes() ([]Route, error) {
 							if !ok {
 								return nil, fmt.Errorf("Unknown flag: %c", c)
 							}
-							r.Flags[flag] = true
+							r.Flags[flag] = flag
 						}
 					case "Netif":
 						r.Interface = wrapper.interfaces[v]

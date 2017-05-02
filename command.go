@@ -120,3 +120,12 @@ func (cmd CommandSpec) Run() ([]byte, []byte, error) {
 	defer onAfterCommandRun(ctx, ocmd)
 	return runCommand(ocmd)
 }
+
+func (cmd CommandSpec) Clone() CommandSpec {
+	args := make([]string, len(cmd.Args))
+	copy(args, cmd.Args)
+	return CommandSpec{
+		Name: cmd.Name,
+		Args: args,
+	}
+}

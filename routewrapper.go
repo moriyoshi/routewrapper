@@ -9,7 +9,7 @@ type Route struct {
 	Destination net.IPNet
 	Gateway     net.IP
 	Interface   *net.Interface
-	Flags       map[string]bool
+	Flags       map[string]string
 	Expire      int
 	Metric      int
 }

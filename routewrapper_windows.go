@@ -269,7 +269,7 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 			} else {
 				columns := splitWhitespacesWinRoute(t)
 				r = Route{
-					Flags: make(map[string]bool),
+					Flags: make(map[string]string),
 				}
 				for i := 0; i < len(header); i++ {
 					k := header[i]
@@ -359,7 +359,7 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 				columns := splitWhitespacesWinRoute(t)
 				if cont == 0 {
 					r = Route{
-						Flags: make(map[string]bool),
+						Flags: make(map[string]string),
 					}
 				}
 				i := cont
