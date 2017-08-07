@@ -12,6 +12,8 @@ import (
 
 const SEPARATOR = "==========================================================================="
 
+const PERSISTENT = "PERSISTENT"
+
 type WindowsRouteWrapper struct {
 	routeCommand     string
 	interfaces       map[int]*net.Interface
@@ -41,6 +43,8 @@ outer:
 		} else if t[i] == ' ' {
 			if i+12 <= len(t) && t[i:i+12] == " Destination" {
 				i += 12
+			} else if i+8 <= len(t) && t[i:i+8] == " Address" {
+				i += 8
 			} else {
 				chunk := t[s:i]
 				chunks = append(chunks, chunk)
@@ -328,11 +332,58 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 			if t == "  None" {
 				state = 10
 			} else {
+				header = splitWhitespacesWinRoute(t)
 				state = 12
 			}
 		case 12:
 			if t == SEPARATOR {
 				state = 6
+			} else {
+				columns := splitWhitespacesWinRoute(t)
+				r = Route{
+					Flags: map[string]bool{PERSISTENT: true},
+				}
+				for i := 0; i < len(header); i++ {
+					k := header[i]
+					v := ""
+					if i < len(columns) {
+						v = columns[i]
+					}
+					switch k {
+					case "Network Address":
+						dst := net.ParseIP(v)
+						if dst == nil {
+							return nil, fmt.Errorf("Invalid IPv4 address: %s", v)
+						}
+						r.Destination.IP = dst
+					case "Netmask":
+						nm := net.ParseIP(v)
+						if nm == nil {
+							return nil, fmt.Errorf("Invalid IPv4 address: %s", v)
+						}
+						nm4 := nm.To4()
+						if nm4 != nil {
+							r.Destination.Mask = net.IPMask(nm4)
+						} else {
+							r.Destination.Mask = net.IPMask(nm)
+						}
+					case "Gateway Address":
+						ip := ourParseGatewayWinRoute(v)
+						if ip != nil {
+							r.Gateway = ip
+						}
+					case "Metric":
+						if v == "Default" {
+							r.Metric = -1
+						} else {
+							r.Metric, err = strconv.Atoi(v)
+							if err != nil {
+								return nil, err
+							}
+						}
+					}
+				}
+				routes = append(routes, r)
 			}
 		case 13:
 			if t != SEPARATOR {
@@ -343,7 +394,7 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 			if t == "Active Routes:" {
 				state = 15
 			} else if t == "Persistent Routes:" {
-				state = 19
+				state = 18
 			}
 		case 15:
 			if t == "  None" {
@@ -410,19 +461,74 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 			}
 		case 17:
 			if t == SEPARATOR {
-				state = 13
-			} else if t == "" {
-				state = 11
+				state = 14
 			}
 		case 18:
 			if t == "  None" {
 				state = 17
 			} else {
+				header = splitWhitespacesWinRoute(t)
 				state = 19
 			}
 		case 19:
 			if t == SEPARATOR {
 				state = 14
+			} else {
+				columns := splitWhitespacesWinRoute(t)
+				if cont == 0 {
+					r = Route{
+						Flags: map[string]bool{PERSISTENT: true},
+					}
+				}
+				i := cont
+				for ; i < len(header); i++ {
+					k := header[i]
+					v := ""
+					if i < len(columns) {
+						v = columns[i]
+					} else {
+						break
+					}
+					switch k {
+					case "If":
+						ifIndex, err := strconv.Atoi(v)
+						if err != nil {
+							return nil, err
+						}
+						if_ := (*net.Interface)(nil)
+						if ifIndex != 0 {
+							var ok bool
+							if_, ok = wrapper.interfaces[ifIndex]
+							if !ok {
+								return nil, fmt.Errorf("No such interface that has the index %d", ifIndex)
+							}
+						}
+						r.Interface = if_
+					case "Metric":
+						r.Metric, err = strconv.Atoi(v)
+						if err != nil {
+							return nil, err
+						}
+					case "Network Destination":
+						dst, nm, err := net.ParseCIDR(v)
+						if err != nil {
+							return nil, err
+						}
+						r.Destination.IP = dst
+						r.Destination.Mask = nm.Mask
+					case "Gateway":
+						ip := ourParseGatewayWinRoute(v)
+						if ip != nil {
+							r.Gateway = ip.To16()
+						}
+					}
+				}
+				if i == len(header) {
+					routes = append(routes, r)
+					cont = 0
+				} else {
+					cont = i
+				}
 			}
 		}
 	}

@@ -19,7 +19,11 @@ func main() {
 		panic(err.Error())
 	}
 	for i, route := range routes {
-		fmt.Printf("%d: %s %s\n", i, route.Destination.String(), route.Interface.Name)
+		ifName := "*"
+		if route.Interface != nil {
+			ifName = route.Interface.Name
+		}
+		fmt.Printf("%d: %s %s\n", i, route.Destination.String(), ifName)
 	}
 	if_, err := w.GetInterface("en0")
 	if err != nil {
