@@ -341,7 +341,7 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 			} else {
 				columns := splitWhitespacesWinRoute(t)
 				r = Route{
-					Flags: map[string]bool{PERSISTENT: true},
+					Flags: map[string]string{PERSISTENT: "persistent"},
 				}
 				for i := 0; i < len(header); i++ {
 					k := header[i]
@@ -477,7 +477,7 @@ func (wrapper *WindowsRouteWrapper) getRoutes() ([]Route, error) {
 				columns := splitWhitespacesWinRoute(t)
 				if cont == 0 {
 					r = Route{
-						Flags: map[string]bool{PERSISTENT: true},
+						Flags: map[string]string{PERSISTENT: "persistent"},
 					}
 				}
 				i := cont
